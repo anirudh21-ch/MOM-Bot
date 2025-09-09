@@ -1,0 +1,12 @@
+wget
+text-unidecode
+nemo_toolkit[asr] @ git+https://github.com/NVIDIA/NeMo.git@main
+torchaudio -f https://download.pytorch.org/whl/torch_stable.html
+librosa
+matplotlib
+pydub
+flask
+pyngrok
+yt-dlp
+arpa
+pyctcdecode
