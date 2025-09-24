@@ -1,0 +1,46 @@
+# Default diarization inference configuration
+diarizer:
+  manifest_filepath: null
+  out_dir: ./data
+  oracle_vad: false
+  collar: 0.25
+  ignore_overlap: true
+  
+  speaker_embeddings:
+    model_path: titanet_large
+    parameters:
+      window_length_in_sec: 0.96
+      shift_length_in_sec: 0.48
+      multiscale_weights: null
+      
+  clustering:
+    parameters:
+      oracle_num_speakers: false
+      max_num_speakers: 20
+      enhanced_count_thres: 80
+      max_rp_threshold: 0.25
+      sparse_search_volume: 30
+      
+  vad:
+    model_path: vad_multilingual_marblenet
+    parameters:
+      onset: 0.8
+      offset: 0.6
+      pad_onset: 0.05
+      pad_offset: -0.05
+      min_duration_on: 0.2
+      min_duration_off: 0.2
+      filter_speech_first: true
+      
+  asr:
+    model_path: QuartzNet15x5Base-En
+    parameters:
+      asr_based_vad: false
+      asr_based_vad_threshold: 1.0
+      asr_batch_size: null
+      decoder_delay_in_sec: 0.2
+      word_ts: false
+      sentence_ts: true
+      get_full_text: true
+      use_rnnt_decoder_timestamps: false
+      use_cer: false

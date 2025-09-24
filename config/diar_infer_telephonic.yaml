@@ -1,0 +1,46 @@
+# Telephonic diarization inference configuration
+diarizer:
+  manifest_filepath: null
+  out_dir: ./data
+  oracle_vad: false
+  collar: 0.25
+  ignore_overlap: true
+  
+  speaker_embeddings:
+    model_path: titanet_large
+    parameters:
+      window_length_in_sec: 0.96
+      shift_length_in_sec: 0.48
+      multiscale_weights: null
+      
+  clustering:
+    parameters:
+      oracle_num_speakers: false
+      max_num_speakers: 8  # Typically fewer speakers in phone calls
+      enhanced_count_thres: 80
+      max_rp_threshold: 0.15  # More strict for telephonic
+      sparse_search_volume: 30
+      
+  vad:
+    model_path: vad_multilingual_marblenet
+    parameters:
+      onset: 0.7  # More sensitive for telephonic
+      offset: 0.5
+      pad_onset: 0.1
+      pad_offset: -0.1
+      min_duration_on: 0.1
+      min_duration_off: 0.1
+      filter_speech_first: true
+      
+  asr:
+    model_path: QuartzNet15x5Base-En
+    parameters:
+      asr_based_vad: false
+      asr_based_vad_threshold: 1.0
+      asr_batch_size: null
+      decoder_delay_in_sec: 0.2
+      word_ts: false
+      sentence_ts: true
+      get_full_text: true
+      use_rnnt_decoder_timestamps: false
+      use_cer: false
