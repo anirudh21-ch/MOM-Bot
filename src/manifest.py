@@ -1,6 +1,7 @@
-import os
 import json
+import os
 from typing import List, Optional, Union
+
 
 def create_manifest(
     audio_filepath: str,
@@ -10,7 +11,7 @@ def create_manifest(
     ctm_filepath: Optional[str] = None,
     uem_filepath: Optional[str] = None,
     label: str = "infer",
-    text: str = "-"
+    text: str = "-",
 ) -> str:
     """
     Create a NeMo-compatible manifest file for diarization/ASR.
@@ -40,7 +41,7 @@ def create_manifest(
         "num_speakers": num_speakers,
         "rttm_filepath": rttm_filepath,
         "ctm_filepath": ctm_filepath,
-        "uem_filepath": uem_filepath
+        "uem_filepath": uem_filepath,
     }
 
     with open(manifest_path, "w") as f:
@@ -58,7 +59,7 @@ def create_manifest_for_multiple(
     ctm_filepaths: Optional[List[str]] = None,
     uem_filepaths: Optional[List[str]] = None,
     label: str = "infer",
-    text: str = "-"
+    text: str = "-",
 ) -> str:
     """
     Create a manifest file for multiple audio files.
@@ -87,9 +88,7 @@ def create_manifest_for_multiple(
             "duration": None,
             "label": label,
             "text": text,
-            "num_speakers": (
-                num_speakers[i] if isinstance(num_speakers, list) else num_speakers
-            ),
+            "num_speakers": (num_speakers[i] if isinstance(num_speakers, list) else num_speakers),
             "rttm_filepath": None if not rttm_filepaths else rttm_filepaths[i],
             "ctm_filepath": None if not ctm_filepaths else ctm_filepaths[i],
             "uem_filepath": None if not uem_filepaths else uem_filepaths[i],

@@ -1,7 +1,9 @@
-import os
 import glob
-from pydub import AudioSegment
+import os
+
 import librosa
+from pydub import AudioSegment
+
 
 def prepare_audio(original_audio_path: str, output_dir: str = "data"):
     """

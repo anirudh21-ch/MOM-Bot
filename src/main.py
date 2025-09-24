@@ -1,19 +1,15 @@
 import os
 import pprint
-from flask import Flask, jsonify
 import re
 
-from src.preprocessing import prepare_audio
-from src.config_loader import load_config
-from src.manifest import create_manifest
+from flask import Flask, jsonify
+
 from src.asr import run_asr
-from src.diarization import (
-    init_diarization,
-    run_diarization,
-    get_transcript,
-    save_transcript
-)
+from src.config_loader import load_config
+from src.diarization import get_transcript, init_diarization, run_diarization, save_transcript
+from src.manifest import create_manifest
 from src.openai_integration import summarize_transcript
+from src.preprocessing import prepare_audio
 from src.utils import read_file
 
 # Configuration
@@ -40,12 +36,14 @@ def parse_transcript(file_path):
             match = re.match(r"\[(\d+:\d+\.\d+) - (\d+:\d+\.\d+)\]\s+(\w+):\s+(.*)", line)
             if match:
                 start, end, speaker, text = match.groups()
-                results.append({
-                    "speaker": speaker,
-                    "start_time": start,
-                    "end_time": end,
-                    "transcription": text
-                })
+                results.append(
+                    {
+                        "speaker": speaker,
+                        "start_time": start,
+                        "end_time": end,
+                        "transcription": text,
+                    }
+                )
     return results
 
 
@@ -79,7 +77,9 @@ def run_pipeline():
     print(f"Diarization hypothesis sample for {first_key}:\n", diar_hyp[first_key])
 
     # 7️⃣ Extract transcript (as DataFrame for ease of use)
-    transcript_df = get_transcript(asr_diar_offline, diar_hyp, sentence_hyp, sentence_ts_hyp, return_df=True)
+    transcript_df = get_transcript(
+        asr_diar_offline, diar_hyp, sentence_hyp, sentence_ts_hyp, return_df=True
+    )
     print("Transcript DataFrame sample:")
     print(transcript_df.head())
 

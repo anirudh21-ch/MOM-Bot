@@ -1,7 +1,9 @@
 from os.path import join
+
 import pandas as pd
 from nemo.collections.asr.parts.utils.diarization_utils import OfflineDiarWithASR
 from nemo.collections.asr.parts.utils.speaker_utils import rttm_to_labels
+
 from src.utils import read_file
 
 
@@ -58,20 +60,20 @@ def get_transcript(asr_diar_offline, diar_hyp, hyp, ts_hyp, return_df=False):
     Returns:
         dict or pd.DataFrame: Transcript structured by speaker and timestamp.
     """
-    trans_info_dict = asr_diar_offline.get_transcript_with_speaker_labels(
-        diar_hyp, hyp, ts_hyp
-    )
+    trans_info_dict = asr_diar_offline.get_transcript_with_speaker_labels(diar_hyp, hyp, ts_hyp)
 
     if return_df:
         rows = []
         for speaker, segments in trans_info_dict.items():
             for seg in segments:
-                rows.append({
-                    "speaker": speaker,
-                    "start_time": float(seg["start_time"]),
-                    "end_time": float(seg["end_time"]),
-                    "transcription": seg["text"]
-                })
+                rows.append(
+                    {
+                        "speaker": speaker,
+                        "start_time": float(seg["start_time"]),
+                        "end_time": float(seg["end_time"]),
+                        "transcription": seg["text"],
+                    }
+                )
         return pd.DataFrame(rows)
 
     return trans_info_dict

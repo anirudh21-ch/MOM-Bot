@@ -1,5 +1,6 @@
 from nemo.collections.asr.parts.utils.decoder_timestamps_utils import ASRDecoderTimeStamps
 
+
 def run_asr(cfg, level: str = "sentence"):
     """
     Run ASR with NeMo ASRDecoderTimeStamps.

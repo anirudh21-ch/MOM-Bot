@@ -1,5 +1,5 @@
-import requests
 import openai
+import requests
 
 # Set your OpenAI API key
 openai.api_key = "YOUR_OPENAI_API_KEY"
@@ -51,10 +51,10 @@ def summarize_transcript(transcript_entries):
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You summarize meeting transcripts."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             temperature=0.5,
-            max_tokens=500
+            max_tokens=500,
         )
 
         summary = response["choices"][0]["message"]["content"].strip()

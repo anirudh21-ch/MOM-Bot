@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
+
+import requests
 import wget
 from omegaconf import OmegaConf
-import requests
-from pathlib import Path
+
 
 def load_config(data_dir="data", domain_type="meeting"):
     """
@@ -10,9 +12,9 @@ def load_config(data_dir="data", domain_type="meeting"):
     Uses local config first, falls back to download only if needed.
     """
     os.makedirs(data_dir, exist_ok=True)
-    
+
     config_file_name = f"diar_infer_{domain_type}.yaml"
-    
+
     # Priority 1: Check local config directory first
     local_config_path = os.path.join("config", config_file_name)
     if os.path.exists(local_config_path):
@@ -35,79 +37,81 @@ def load_config(data_dir="data", domain_type="meeting"):
                 # Use requests instead of wget for better error handling
                 response = requests.get(config_url, timeout=10)
                 response.raise_for_status()
-                
-                with open(cached_config_path, 'w') as f:
+
+                with open(cached_config_path, "w") as f:
                     f.write(response.text)
-                
+
                 cfg = OmegaConf.load(cached_config_path)
                 print(f"Config downloaded and cached to: {cached_config_path}")
-                
+
             except Exception as e:
                 # Priority 4: Use embedded default config as final fallback
                 print(f"Download failed ({e}), using embedded default config")
                 cfg = get_default_config()
-    
+
     # Apply custom overrides
     cfg = apply_custom_overrides(cfg, data_dir)
     return cfg
+
 
 def get_default_config():
     """
     Embedded default configuration as fallback when network is unavailable.
     """
     default_config = {
-        'diarizer': {
-            'manifest_filepath': None,
-            'out_dir': './data',
-            'oracle_vad': False,
-            'collar': 0.25,
-            'ignore_overlap': True,
-            'speaker_embeddings': {
-                'model_path': 'titanet_large',
-                'parameters': {
-                    'window_length_in_sec': 0.96,
-                    'shift_length_in_sec': 0.48,
-                    'multiscale_weights': None
+        "diarizer": {
+            "manifest_filepath": None,
+            "out_dir": "./data",
+            "oracle_vad": False,
+            "collar": 0.25,
+            "ignore_overlap": True,
+            "speaker_embeddings": {
+                "model_path": "titanet_large",
+                "parameters": {
+                    "window_length_in_sec": 0.96,
+                    "shift_length_in_sec": 0.48,
+                    "multiscale_weights": None,
+                },
+            },
+            "clustering": {
+                "parameters": {
+                    "oracle_num_speakers": False,
+                    "max_num_speakers": 20,
+                    "enhanced_count_thres": 80,
+                    "max_rp_threshold": 0.25,
+                    "sparse_search_volume": 30,
                 }
             },
-            'clustering': {
-                'parameters': {
-                    'oracle_num_speakers': False,
-                    'max_num_speakers': 20,
-                    'enhanced_count_thres': 80,
-                    'max_rp_threshold': 0.25,
-                    'sparse_search_volume': 30
-                }
+            "vad": {
+                "model_path": "vad_multilingual_marblenet",
+                "parameters": {
+                    "onset": 0.8,
+                    "offset": 0.6,
+                    "pad_onset": 0.05,
+                    "pad_offset": -0.05,
+                    "min_duration_on": 0.2,
+                    "min_duration_off": 0.2,
+                    "filter_speech_first": True,
+                },
             },
-            'vad': {
-                'model_path': 'vad_multilingual_marblenet',
-                'parameters': {
-                    'onset': 0.8,
-                    'offset': 0.6,
-                    'pad_onset': 0.05,
-                    'pad_offset': -0.05,
-                    'min_duration_on': 0.2,
-                    'min_duration_off': 0.2,
-                    'filter_speech_first': True
-                }
+            "asr": {
+                "model_path": "QuartzNet15x5Base-En",
+                "parameters": {
+                    "asr_based_vad": False,
+                    "asr_based_vad_threshold": 1.0,
+                    "asr_batch_size": None,
+                    "decoder_delay_in_sec": 0.2,
+                    "word_ts": False,
+                    "sentence_ts": True,
+                    "get_full_text": True,
+                    "use_rnnt_decoder_timestamps": False,
+                    "use_cer": False,
+                },
             },
-            'asr': {
-                'model_path': 'QuartzNet15x5Base-En',
-                'parameters': {
-                    'asr_based_vad': False,
-                    'asr_based_vad_threshold': 1.0,
-                    'asr_batch_size': None,
-                    'decoder_delay_in_sec': 0.2,
-                    'word_ts': False,
-                    'sentence_ts': True,
-                    'get_full_text': True,
-                    'use_rnnt_decoder_timestamps': False,
-                    'use_cer': False
-                }
-            }
         }
     }
     return OmegaConf.create(default_config)
+
 
 def apply_custom_overrides(cfg, data_dir):
     """

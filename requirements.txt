@@ -40,3 +40,13 @@ pyngrok>=5.1.0
 
 # Environment & Security
 python-dotenv>=0.19.0
+
+# Code Quality & Formatting Tools
+pylint>=2.15.0
+black>=22.0.0
+flake8>=5.0.0
+autopep8>=2.0.0
+isort>=5.10.0
+
+# Development Tools
+pre-commit>=2.20.0
