@@ -4,7 +4,6 @@
 __all__ = [
     "audio_processing",
     "diarization",
-    "evaluation",
     "main",
     "manifest",
     "openai_integration",
@@ -20,9 +19,7 @@ def __getattr__(name):
     elif name == "diarization":
         from . import diarization
         return diarization
-    elif name == "evaluation":
-        from . import evaluation
-        return evaluation
+
     elif name == "main":
         from . import main
         return main

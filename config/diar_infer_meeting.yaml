@@ -5,16 +5,21 @@ diarizer:
   oracle_vad: false
   collar: 0.25
   ignore_overlap: true
+  device: auto
   
   speaker_embeddings:
     model_path: titanet_large
+    device: auto
     parameters:
       window_length_in_sec: 0.96
       shift_length_in_sec: 0.48
       multiscale_weights: null
+      save_embeddings: false
       
   clustering:
+    device: auto
     parameters:
+      device: auto
       oracle_num_speakers: false
       max_num_speakers: 20
       enhanced_count_thres: 80
@@ -23,7 +28,10 @@ diarizer:
       
   vad:
     model_path: vad_multilingual_marblenet
+    device: auto
     parameters:
+      window_length_in_sec: 0.15
+      shift_length_in_sec: 0.01
       onset: 0.8
       offset: 0.6
       pad_onset: 0.05
@@ -31,6 +39,7 @@ diarizer:
       min_duration_on: 0.2
       min_duration_off: 0.2
       filter_speech_first: true
+      smoothing: false
       
   asr:
     model_path: QuartzNet15x5Base-En
@@ -44,3 +53,28 @@ diarizer:
       get_full_text: true
       use_rnnt_decoder_timestamps: false
       use_cer: false
+      word_ts_anchor_offset: 0.12
+      word_ts_anchor_alignment: "left"
+      word_ts_anchor_pos: "start"
+      fix_word_ts_with_VAD: true
+      colored_text: false
+      print_time: false
+      break_lines: false
+    ctc_decoder_parameters:
+      pretrained_language_model: null
+      beam_size: 1
+      alpha: 0.5
+      beta: 1.0
+      cutoff_prob: 1.0
+      cutoff_top_n: 40
+      language_model_path: null
+      num_cpus: 4
+    realigning_lm_parameters:
+      arpa_language_model: null
+      alpha: 0.5
+      beta: 1.0
+      beam_size: 1024
+      beam_cut_threshold: 16.0
+      temperature: 1.2
+      temperature_lm: 1.2
+      min_word_prob: 0.88

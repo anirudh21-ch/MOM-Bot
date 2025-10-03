@@ -1,1 +1,0 @@
-# Empty evaluation module - placeholder for future evaluation functionality

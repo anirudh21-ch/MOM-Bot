@@ -65,8 +65,10 @@ def get_default_config():
             "oracle_vad": False,
             "collar": 0.25,
             "ignore_overlap": True,
+            "device": "auto",
             "speaker_embeddings": {
                 "model_path": "titanet_large",
+                "device": "auto",
                 "parameters": {
                     "window_length_in_sec": 0.96,
                     "shift_length_in_sec": 0.48,
@@ -74,7 +76,9 @@ def get_default_config():
                 },
             },
             "clustering": {
+                "device": "auto",
                 "parameters": {
+                    "device": "auto",
                     "oracle_num_speakers": False,
                     "max_num_speakers": 20,
                     "enhanced_count_thres": 80,
@@ -84,6 +88,7 @@ def get_default_config():
             },
             "vad": {
                 "model_path": "vad_multilingual_marblenet",
+                "device": "auto",
                 "parameters": {
                     "onset": 0.8,
                     "offset": 0.6,
@@ -106,6 +111,29 @@ def get_default_config():
                     "get_full_text": True,
                     "use_rnnt_decoder_timestamps": False,
                     "use_cer": False,
+                    "word_ts_anchor_offset": 0.12,
+                    "word_ts_anchor_alignment": "left",
+                    "fix_word_ts_with_VAD": True,
+                },
+                "ctc_decoder_parameters": {
+                    "pretrained_language_model": None,
+                    "beam_size": 1,
+                    "alpha": 0.5,
+                    "beta": 1.0,
+                    "cutoff_prob": 1.0,
+                    "cutoff_top_n": 40,
+                    "language_model_path": None,
+                    "num_cpus": 4,
+                },
+                "realigning_lm_parameters": {
+                    "arpa_language_model": None,
+                    "alpha": 0.5,
+                    "beta": 1.0,
+                    "beam_size": 1024,
+                    "beam_cut_threshold": 16.0,
+                    "temperature": 1.2,
+                    "temperature_lm": 1.2,
+                    "min_word_prob": 0.88,
                 },
             },
         }
@@ -135,6 +163,45 @@ def apply_custom_overrides(cfg, data_dir):
     cfg.diarizer.asr.parameters.get_full_text = True
     cfg.diarizer.asr.parameters.use_rnnt_decoder_timestamps = False
     cfg.diarizer.asr.parameters.use_cer = False
+
+    # Advanced device configuration fix for NeMo ClusteringDiarizer
+    try:
+        # Create a completely new config dict to avoid struct mode issues
+        from omegaconf import DictConfig
+        
+        # Convert to regular dict, modify, then back to DictConfig
+        config_dict = OmegaConf.to_container(cfg, resolve=True)
+        
+        # Ensure device is set at all levels
+        if "diarizer" in config_dict:
+            config_dict["diarizer"]["device"] = "auto"
+            
+            if "clustering" in config_dict["diarizer"]:
+                config_dict["diarizer"]["clustering"]["device"] = "auto"
+                # Also add device to clustering parameters
+                if "parameters" in config_dict["diarizer"]["clustering"]:
+                    config_dict["diarizer"]["clustering"]["parameters"]["device"] = "auto"
+                
+            if "vad" in config_dict["diarizer"]:
+                config_dict["diarizer"]["vad"]["device"] = "auto"
+                
+            if "speaker_embeddings" in config_dict["diarizer"]:
+                config_dict["diarizer"]["speaker_embeddings"]["device"] = "auto"
+        
+        # Create new OmegaConf without struct mode restrictions
+        cfg = OmegaConf.create(config_dict)
+        
+        print("Successfully configured device parameters for NeMo models")
+        
+    except Exception as e:
+        print(f"Warning: Could not set device parameters: {e}")
+        
+    # Additional fix: Set struct mode to False to allow NeMo to modify config
+    try:
+        OmegaConf.set_struct(cfg, False)
+        print("Disabled struct mode for NeMo compatibility")
+    except:
+        pass
 
     return cfg
 

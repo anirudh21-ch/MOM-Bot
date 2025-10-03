@@ -1,4 +1,11 @@
-# Telephonic diarization inference configuration
+# Default diarization inference configuration
+diarizer:
+  manifest_filepath: null
+  out_dir: ./data
+  oracle_vad: false
+  collar: 0.25
+  ignore_overlap: true
+  device: autohonic diarization inference configuration
 diarizer:
   manifest_filepath: null
   out_dir: ./data
@@ -8,39 +15,50 @@ diarizer:
   
   speaker_embeddings:
     model_path: titanet_large
+    device: auto
     parameters:
       window_length_in_sec: 0.96
       shift_length_in_sec: 0.48
       multiscale_weights: null
+      save_embeddings: false
       
   clustering:
+    device: auto
     parameters:
+      device: auto
       oracle_num_speakers: false
-      max_num_speakers: 8  # Typically fewer speakers in phone calls
+      max_num_speakers: 20
       enhanced_count_thres: 80
-      max_rp_threshold: 0.15  # More strict for telephonic
+      max_rp_threshold: 0.25
       sparse_search_volume: 30
       
   vad:
     model_path: vad_multilingual_marblenet
+    device: auto
     parameters:
-      onset: 0.7  # More sensitive for telephonic
-      offset: 0.5
+      onset: 0.4
+      offset: 0.3
       pad_onset: 0.1
       pad_offset: -0.1
       min_duration_on: 0.1
       min_duration_off: 0.1
       filter_speech_first: true
+      smoothing: false
       
   asr:
     model_path: QuartzNet15x5Base-En
     parameters:
-      asr_based_vad: false
-      asr_based_vad_threshold: 1.0
-      asr_batch_size: null
-      decoder_delay_in_sec: 0.2
-      word_ts: false
-      sentence_ts: true
-      get_full_text: true
-      use_rnnt_decoder_timestamps: false
-      use_cer: false
+      asr_model_path: QuartzNet15x5Base-En
+      decoder_delay_in_seconds: 0.2
+      word_ts_anchor_offset: 0.0
+      word_ts_anchor_pos: "start"
+      fix_word_ts_with_VAD: true
+      colored_text: false
+      print_time: false
+      break_lines: false
+      ctc_decoder_parameters:
+        preserve_alignments: false
+        compute_timestamps: true
+      realigning_lm_parameters:
+        arpa_language_model: null
+        beam_width_lm: 16
