@@ -1,127 +1,163 @@
-# MOM-Bot: Meeting Minutes Automation Bot
+# MOM-Bot: Meeting Transcription Pipeline
 
-AI-powered audio transcription and meeting summarization with speaker diarization, optimized for Apple Silicon Macs with MPS acceleration.
+Professional speech processing pipeline with **Whisper ASR** for meeting transcription, speaker diarization, and meeting minutes.
 
-## Features
+## ✨ Features
 
-- 🎯 **Speaker Diarization**: Automatically identify and separate different speakers
-- 🚀 **MPS Acceleration**: Optimized for Apple Silicon GPUs (M1/M2/M3)
-- 🤖 **AI Summarization**: GPT-powered meeting summaries with action items
-- 📝 **Multiple Formats**: Support for WAV, MP3, MP4, FLAC audio files
-- 🌐 **REST API**: Simple HTTP endpoints for integration
-- ⚡ **Real-time Processing**: Fast transcription with hardware acceleration
+- ✅ **Whisper ASR**: OpenAI Whisper for high-accuracy transcription (99+ languages)
+- ✅ **Speaker Diarization**: Automatically identify who spoke when
+- ✅ **Long Audio Support**: Handles 15-20+ minute meetings efficiently
+- ✅ **Multiple Models**: Choose speed vs accuracy (tiny → large)
+- ✅ **Audio Format Support**: WAV, MP3, M4A, FLAC, OGG, and more
+- ✅ **JSON Output**: Structured results with timestamps and metadata
+- ✅ **Language Detection**: Automatic language detection
+- ✅ **CLI & Python API**: Both command-line and programmatic access
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Installation
+### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/MOM-Bot.git
-cd MOM-Bot
-
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configuration
+### Command Line Usage
 
+**Process audio with default settings:**
 ```bash
-# Set your OpenAI API key for summarization (optional)
-export OPENAI_API_KEY="your-openai-api-key"
+python -m src.main.pipeline meeting.wav
 ```
 
-### 3. Run the Server
-
+**For long meetings (15-20 minutes) - use tiny model:**
 ```bash
-python -m src.main.main
+python -m src.main.pipeline long_meeting.wav --model tiny
 ```
 
-The server will start on `http://localhost:8000`
-
-## API Endpoints
-
-### Health Check
+**Save output to specific file:**
 ```bash
-curl http://localhost:8000/
+python -m src.main.pipeline meeting.wav -o results.json
+## 🎯 Whisper Model Selection
+
+For different audio durations:
+
+| Audio Length | Recommended Model | Speed | Accuracy |
+|--------------|------------------|-------|----------|
+| < 5 min      | base             | fast  | excellent |
+| 5-15 min     | base             | medium | excellent |
+| 15-20 min    | **tiny**         | ⚡ fast | good |
+| 20+ min      | tiny             | ⚡ fastest | good |
+| Accuracy critical | small | slower | excellent+ |
+
+## 📁 Project Structure
+
+```
+MOM-Bot-master copy 2/
+├── src/
+│   ├── main/
+│   │   ├── __init__.py
+│   │   └── pipeline.py          # CLI entry point
+│   ├── pipeline/
+│   │   ├── __init__.py
+│   │   ├── whisper_asr.py       # Whisper engine (ONLY ASR)
+│   │   └── pipeline.py          # Main pipeline orchestration
+│   ├── audio_processing/
+│   │   ├── asr.py
+│   │   ├── audio_loader.py
+│   │   └── config_loader.py
+│   ├── diarization/             # Speaker identification
+│   ├── preprocessing/
+│   ├── utils/
+│   └── openai_integration.py
+├── config/                      # Model configurations
+├── data/                        # Audio files (add yours here)
+├── output/                      # Results (generated)
+├── requirements.txt             # Dependencies
+├── QUICKSTART.md               # Detailed usage guide
+├── test_pipeline.py            # Example usage script
+└── README.md                   # This file
 ```
 
-### Transcribe Audio
+## 🛠️ Installation
+
 ```bash
-curl -X POST -F "audio=@your-audio-file.wav" http://localhost:8000/transcribe
+# Install dependencies
+pip install -r requirements.txt
+
+# Verify Whisper installation
+python -c "import whisper; print('✓ Whisper installed')"
 ```
 
-### Generate Summary
-```bash
-# Summarize last transcription
-curl http://localhost:8000/summary
+## 📝 Examples
 
-# Upload extract.txt file
-curl -X POST -F "extract_file=@extract.txt" http://localhost:8000/summary
+### Example 1: Process meeting with fast model
+```bash
+python -m src.main.pipeline meeting.wav --model tiny --output results.json
 ```
 
-## Example Response
+### Example 2: Process with accuracy focus
+```bash
+python -m src.main.pipeline meeting.wav --model small --print
+```
 
-### Transcription
+### Example 3: Process multiple audio formats
+```bash
+# WAV
+python -m src.main.pipeline audio/meeting.wav
+
+# MP3
+python -m src.main.pipeline audio/recording.mp3
+
+# M4A
+python -m src.main.pipeline audio/podcast.m4a
+```
+
+## 🎙️ Output Example
+
+Results are saved as JSON with speaker information:
+
 ```json
 {
-  "status": "success",
-  "transcript": [
+  "audio_file": "meeting.wav",
+  "total_duration": 237.77,
+  "num_segments": 11,
+  "num_speakers": 2,
+  "asr_model": "Whisper-base",
+  "language": "en",
+  "segments": [
     {
-      "speaker": "Speaker_0",
-      "text": "Good morning everyone, let's start the meeting.",
-      "start_time": 0.0,
-      "end_time": 3.2
+      "segment_id": 1,
+      "start_time": "0.00s",
+      "end_time": "34.00s",
+      "speaker": "Speaker 1",
+      "text": "Good morning everyone...",
+      "confidence": 0.95,
+      "language": "en"
     }
   ],
-  "metadata": {
-    "num_segments": 15,
-    "speakers": ["Speaker_0", "Speaker_1"],
-    "audio_file": "/path/to/audio.wav"
+  "speaker_summary": {
+    "Speaker 1": {"duration": 122.0, "segments": 6, "words": 415},
+    "Speaker 2": {"duration": 96.0, "segments": 5, "words": 308}
   }
 }
 ```
 
-### Summary
-```json
-{
-  "status": "success",
-  "summary": {
-    "executive_summary": "Team meeting to discuss Q4 planning...",
-    "key_points": ["Budget approval needed", "Timeline finalized"],
-    "decisions": ["Approved Q4 budget increase"],
-    "action_items": ["John to prepare proposal by Friday"],
-    "participants": ["Speaker_0", "Speaker_1"],
-    "next_steps": ["Follow-up meeting scheduled for next week"]
-  }
-}
-```
+## 💾 Supported Audio Formats
 
-## System Requirements
+WAV • MP3 • M4A • FLAC • OGG • And more
 
-- **macOS**: Apple Silicon Mac (M1/M2/M3) recommended for MPS acceleration
-- **Python**: 3.9+ 
-- **Memory**: 8GB RAM minimum, 16GB recommended
-- **Storage**: 5GB for models and dependencies
+## 🔧 Technologies
 
-## Architecture
+- **Speech Recognition**: OpenAI Whisper (99+ languages)
+- **Voice Activity Detection**: NeMo MarbleNet
+- **Speaker Diarization**: NeMo TitanET
+- **Deep Learning**: PyTorch with CPU/CUDA/MPS support
+- **Audio Processing**: librosa, soundfile
 
-```
-MOM-Bot/
-├── src/
-│   ├── main/               # Flask API server
-│   ├── audio_processing/   # ASR and preprocessing
-│   ├── diarization/        # Speaker diarization with MPS
-│   └── openai_integration/ # AI summarization
-├── config/                 # NeMo model configurations
-└── data/                   # Audio files and outputs
-```
+## 📚 Documentation
 
-## Technologies
-
-- **NeMo Toolkit**: NVIDIA's toolkit for speech AI
-- **PyTorch**: With Metal Performance Shaders (MPS) support
-- **OpenAI GPT**: For intelligent summarization
+- [QUICKSTART.md](QUICKSTART.md) - Detailed usage guide
+- [requirements.txt](requirements.txt) - All dependencies
 - **Flask**: REST API framework
 - **librosa**: Audio processing and analysis
 

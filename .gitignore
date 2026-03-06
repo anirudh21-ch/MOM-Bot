@@ -1,7 +1,28 @@
 # Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
 MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Virtual environments
 venv/
@@ -9,32 +30,97 @@ venv/
 env/
 .env/
 ENV/
-
+env.bak/
+venv.bak/
 
 # Environment variables
 .env
 .env.config
 .env.local
 .env.*.local
-
+credentials.json
+tokens.json
+secrets.json
+config.local.yaml
 
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.atom/
+.vim/
+
+# Testing
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Streamlit
+.streamlit/
+streamlit_cache/
+
+# Flask/Web
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Data files (usually large)
 data/
 *.wav
 *.mp3
-*.mp4
-*.avi
-*.mov
+*.m4a
+*.flac
+*.ogg
+*.webm
+data/*.wav
+data/*.mp3
+data/*.m4a
+
+# Temporary and Upload files
+temp_uploads/
+temp/
+tmp/
+uploads/
+temp_*
 
 # Model files (usually large)
 models/
+pretrained_models/
+whisper_models/
 *.nemo
 *.ckpt
+*.pt
+*.pth
 
 # Output files
 output/
@@ -42,4 +128,27 @@ results/
 extract.txt
 *.json.fixed
 *_fixed.json
+output/*.json
+output/*.wav
+output/*.mp3
 
+# Logs
+*.log
+logs/
+
+# OS Files
+ehthumbs.db
+Thumbs.db
+
+# Build and packaging
+.vagrant/
+*.bak
+*.rar
+*.7z
+*.zip
+
+# Keep but allow specific files
+!data/.gitkeep
+!output/.gitkeep
+!models/.gitkeep
+!temp_uploads/.gitkeep

@@ -172,13 +172,14 @@ def convert_time_to_seconds(time_str):
         return 0.0
 
 
-def run_pipeline(audio_file_path, output_dir=None):
+def run_pipeline(audio_file_path, output_dir=None, use_whisper=True):
     """
     Run the complete MOMbot pipeline on an audio file.
 
     Args:
         audio_file_path (str): Path to the input audio file
         output_dir (str): Directory to save outputs (default: temp directory)
+        use_whisper (bool): Use Whisper ASR (True) or old QuartzNet (False)
 
     Returns:
         dict: Pipeline results with transcript JSON
@@ -191,11 +192,12 @@ def run_pipeline(audio_file_path, output_dir=None):
 
     try:
         print(f"Processing audio file: {audio_file_path}")
+        print(f"ASR Method: {'Whisper (Phase 2.1)' if use_whisper else 'QuartzNet (Legacy)'}")
 
         # 1. Preprocess: Convert to mono
         mono_audio_path, signal, sample_rate = prepare_audio(audio_file_path, output_dir=output_dir)
 
-                # Load configuration
+        # Load configuration (needed for some paths even with Whisper)
         cfg = load_config(data_dir=output_dir, domain_type="meeting")
         
         # Ensure device parameters are available for NeMo models
@@ -230,9 +232,64 @@ def run_pipeline(audio_file_path, output_dir=None):
         manifest_path = create_manifest(mono_audio_path, output_dir=output_dir)
         cfg.diarizer.manifest_filepath = manifest_path
 
-        # 4. Run ASR with debugging
+        # 3. Run ASR (NEW: Whisper or OLD: QuartzNet)
         print("🎤 Running ASR transcription...")
-        sentence_hyp, sentence_ts_hyp = run_asr(cfg, level="sentence")
+        
+        if use_whisper:
+            # NEW: Phase 2.1 - Whisper ASR
+            try:
+                from src.audio_processing.whisper_asr import WhisperASREngine
+                
+                print("   Using Whisper Medium (Phase 2.1)")
+                asr_engine = WhisperASREngine(model_size="medium", device="auto")
+                sentence_hyp, sentence_ts_hyp = asr_engine.transcribe_with_timestamps(
+                    mono_audio_path,
+                    language=None  # Auto-detect
+                )
+                print(f"   ✅ Detected language: {asr_engine.get_language(mono_audio_path)}")
+                
+            except ImportError as e:
+                print(f"   ⚠️ Whisper not available: {e}")
+                print("   Falling back to QuartzNet...")
+                use_whisper = False
+            except Exception as e:
+                print(f"   ❌ Whisper error: {e}")
+                print("   Falling back to QuartzNet...")
+                use_whisper = False
+        
+        if not use_whisper:
+            # OLD: Phase 1 - QuartzNet ASR (Legacy)
+            print("   Using QuartzNet15x5Base-En (Legacy)")
+            
+            # Ensure device parameters are available for NeMo models
+            try:
+                from omegaconf import OmegaConf
+                # Temporarily disable struct mode to allow device parameter addition
+                OmegaConf.set_struct(cfg, False)
+                
+                # Set device parameters using direct assignment since struct mode is disabled
+                cfg.diarizer.device = "auto"
+                if hasattr(cfg.diarizer, 'vad'):
+                    cfg.diarizer.vad.device = "auto"
+                if hasattr(cfg.diarizer, 'clustering'):  
+                    cfg.diarizer.clustering.device = "auto"
+                if hasattr(cfg.diarizer, 'speaker_embeddings'):
+                    cfg.diarizer.speaker_embeddings.device = "auto"
+                
+                # Re-enable struct mode
+                OmegaConf.set_struct(cfg, True)
+                print("   Successfully configured device parameters for NeMo models")
+                
+            except Exception as e:
+                print(f"   Warning: Could not set device parameters: {e}")
+                # Try fallback approach without struct mode manipulation
+                try:
+                    cfg.diarizer.device = "auto"
+                    print("   Applied fallback device configuration")
+                except:
+                    print("   Could not apply any device configuration")
+            
+            sentence_hyp, sentence_ts_hyp = run_asr(cfg, level="sentence")
         
         print(f"📝 ASR Results:")
         print(f"   - Sentences detected: {len(sentence_hyp) if sentence_hyp else 0}")
